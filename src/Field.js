@@ -93,18 +93,29 @@ export function Node(props) {
     if (props.created) nodeRef.current?.focus()
   }, [props])
 
-  return !editing ? (
+  return (
     <>
       <Draggable>
-        <div
-          className="Field-Node"
-          style={{ top: props.position.y, left: props.position.x }}
-          onDoubleClick={() => setEditing(true)}
-          tabIndex={0}
-          onKeyPress={(e) => e.key === ' ' && setAdding(true)}
-          ref={nodeRef}
-        >
-          <span className="content">{props.content}</span>
+        <div>
+          {!editing ? (
+            <div
+              className="Field-Node"
+              style={{ top: props.position.y, left: props.position.x }}
+              onDoubleClick={() => setEditing(true)}
+              tabIndex={0}
+              onKeyPress={(e) => e.key === ' ' && setAdding(true)}
+              ref={nodeRef}
+            >
+              <span className="content">{props.content}</span>
+            </div>
+          ) : (
+            <Editor
+              defaultValue={props.content}
+              position={props.position}
+              handleClose={() => setEditing(false)}
+              handleSubmit={(node) => props.handleUpdate(node)}
+            />
+          )}
         </div>
       </Draggable>
       {adding && (
@@ -118,12 +129,5 @@ export function Node(props) {
         />
       )}
     </>
-  ) : (
-    <Editor
-      defaultValue={props.content}
-      position={props.position}
-      handleClose={() => setEditing(false)}
-      handleSubmit={(node) => props.handleUpdate(node)}
-    />
   )
 }
