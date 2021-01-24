@@ -30,6 +30,7 @@ export function Field() {
                 node,
               ])
             }
+            handleAdd={(node) => setNodes((nodes) => [...nodes, node])}
           />
         ))}
       </div>
@@ -82,24 +83,40 @@ function Editor(props) {
 }
 
 export function Node(props) {
-  const [editable, setEditable] = useState(false)
+  const nodeRef = useRef(null)
+  const [editing, setEditing] = useState(false)
+  const [adding, setAdding] = useState(false)
 
-  return !editable ? (
-    <Draggable>
-      <div
-        className="Field-Node"
-        style={{ top: props.position.y, left: props.position.x }}
-        onDoubleClick={() => setEditable(true)}
-        disabled
-      >
-        <span className="content">{props.content}</span>
-      </div>
-    </Draggable>
+  return !editing ? (
+    <>
+      <Draggable>
+        <div
+          className="Field-Node"
+          style={{ top: props.position.y, left: props.position.x }}
+          onDoubleClick={() => setEditing(true)}
+          tabIndex={0}
+          onKeyPress={(e) => e.key === ' ' && setAdding(true)}
+          ref={nodeRef}
+        >
+          <span className="content">{props.content}</span>
+        </div>
+      </Draggable>
+      {adding && (
+        <Editor
+          position={{
+            x: props.position.x,
+            y: props.position.y + 16 + nodeRef.current?.offsetHeight ?? 0,
+          }}
+          handleClose={() => setAdding(false)}
+          handleSubmit={(node) => props.handleAdd(node)}
+        />
+      )}
+    </>
   ) : (
     <Editor
       defaultValue={props.content}
       position={props.position}
-      handleClose={() => setEditable(false)}
+      handleClose={() => setEditing(false)}
       handleSubmit={(node) => props.handleUpdate(node)}
     />
   )
