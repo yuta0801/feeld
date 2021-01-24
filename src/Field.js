@@ -1,26 +1,43 @@
 import { useEffect, useRef, useState } from 'react'
-import './Field.css'
+import Draggable from 'react-draggable'
 import { useOnClickOutside } from './hooks/useOutsideClick'
+import './Field.css'
 
 export function Field() {
+  const feeldRef = useRef(null)
   const [nodes, setNodes] = useState([])
   const [editor, setEditor] = useState(null)
 
   return (
     <div
       className="Field"
-      onDoubleClick={(event) => setEditor({ x: event.pageX, y: event.pageY })}
+      onDoubleClick={(event) => {
+        if (event.target === feeldRef.current) {
+          event.preventDefault()
+          setEditor({ x: event.pageX, y: event.pageY })
+        }
+      }}
+      ref={feeldRef}
     >
       <div>
-        {nodes.map((node) => (
-          <Node {...node} />
+        {nodes.map((node, index) => (
+          <Node
+            key={index}
+            {...node}
+            handleUpdate={(node) =>
+              setNodes((nodes) => [
+                ...nodes.filter((_, i) => i !== index),
+                node,
+              ])
+            }
+          />
         ))}
       </div>
       {editor && (
         <Editor
           position={editor}
-          closeEditor={() => setEditor(null)}
-          addNode={(node) => setNodes((nodes) => [...nodes, node])}
+          handleClose={() => setEditor(null)}
+          handleSubmit={(node) => setNodes((nodes) => [...nodes, node])}
         />
       )}
     </div>
@@ -28,12 +45,12 @@ export function Field() {
 }
 
 function Editor(props) {
-  const [text, setText] = useState('')
+  const [text, setText] = useState(props.defaultValue ?? '')
 
   const inputRef = useRef(null)
 
   useOnClickOutside(inputRef, () => {
-    if (!text) props.closeEditor()
+    if (!text || props.defaultValue) props.handleClose()
   })
 
   useEffect(() => {
@@ -43,9 +60,9 @@ function Editor(props) {
   const handleSubmit = (event) => {
     event.preventDefault()
 
-    if (text) props.addNode({ content: text, position: props.position })
+    if (text) props.handleSubmit({ content: text, position: props.position })
 
-    props.closeEditor()
+    props.handleClose()
   }
 
   return (
@@ -65,13 +82,25 @@ function Editor(props) {
 }
 
 export function Node(props) {
-  return (
-    <div
-      className="Field-Node"
-      style={{ top: props.position.y, left: props.position.x }}
-      disabled
-    >
-      {props.content}
-    </div>
+  const [editable, setEditable] = useState(false)
+
+  return !editable ? (
+    <Draggable>
+      <div
+        className="Field-Node"
+        style={{ top: props.position.y, left: props.position.x }}
+        onDoubleClick={() => setEditable(true)}
+        disabled
+      >
+        <span className="content">{props.content}</span>
+      </div>
+    </Draggable>
+  ) : (
+    <Editor
+      defaultValue={props.content}
+      position={props.position}
+      handleClose={() => setEditable(false)}
+      handleSubmit={(node) => props.handleUpdate(node)}
+    />
   )
 }
