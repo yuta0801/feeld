@@ -38,7 +38,9 @@ export function Field() {
         <Editor
           position={editor}
           handleClose={() => setEditor(null)}
-          handleSubmit={(node) => setNodes((nodes) => [...nodes, node])}
+          handleSubmit={(node) =>
+            setNodes((nodes) => [...nodes, { ...node, created: true }])
+          }
         />
       )}
     </div>
@@ -87,6 +89,10 @@ export function Node(props) {
   const [editing, setEditing] = useState(false)
   const [adding, setAdding] = useState(false)
 
+  useEffect(() => {
+    if (props.created) nodeRef.current?.focus()
+  }, [props])
+
   return !editing ? (
     <>
       <Draggable>
@@ -108,7 +114,7 @@ export function Node(props) {
             y: props.position.y + 16 + nodeRef.current?.offsetHeight ?? 0,
           }}
           handleClose={() => setAdding(false)}
-          handleSubmit={(node) => props.handleAdd(node)}
+          handleSubmit={(node) => props.handleAdd({ ...node, created: true })}
         />
       )}
     </>
