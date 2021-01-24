@@ -1,0 +1,18 @@
+.Field {
+  width: 100vw;
+  height: 100vh;
+  background-color: whitesmoke;
+}
+
+.Field-Editor,
+.Field-Node {
+  position: absolute;
+}
+
+.Field-Editor input,
+.Field-Node {
+  padding: 4px 8px;
+  border-radius: 8px;
+  border: 1px solid lightgray;
+  background: white;
+}
